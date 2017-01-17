@@ -260,6 +260,43 @@ void cmd_clr_ctrlreg_bits(unsigned int i, unsigned int bits)
 	pru[pru_ctrl_base[pru_num] + i] &= ~bits;
 }
 
+static void ctrl_set(unsigned int ctrl){
+	pru[pru_ctrl_base[pru_num] + PRU_CTRL_REG] = ctrl;
+}
+
+static unsigned int ctrl_get(){
+	return pru[pru_ctrl_base[pru_num] + PRU_CTRL_REG];
+}
+
+static unsigned int ctrl_get_pcreset(){
+	return ctrl_get() >> 16;
+}
+
+static void ctrl_set_pcreset(unsigned int address){
+	unsigned int ctrl_reg = ctrl_get();
+	ctrl_reg &= 0xffff; // mask out the upper 16 bit
+	ctrl_reg |= (address << 16); // and replaced them with the new address
+	ctrl_set(ctrl_reg);
+}
+
+unsigned int status_get(){
+	return pru[pru_ctrl_base[pru_num] + PRU_STATUS_REG];
+}
+
+void cmd_jump_relative(int jump){
+	unsigned int status_reg = status_get();
+	cmd_jump(status_reg + jump);
+}
+
+void cmd_jump(unsigned int address){
+	ctrl_set_pcreset(address);
+	cmd_halt();
+
+	cmd_soft_reset();
+	unsigned int reset = ctrl_get_pcreset();
+	printf("We are now at: 0x%04x\n", reset);
+}
+
 // start PRU running
 void cmd_run()
 {

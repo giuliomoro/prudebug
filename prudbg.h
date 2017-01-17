@@ -111,6 +111,8 @@ void cmd_run();
 void cmd_runss(long count);
 void cmd_single_step(unsigned int N);
 void cmd_halt();
+void cmd_jump(unsigned int addr);
+void cmd_jump_relative(int jump);
 void cmd_soft_reset();
 void cmd_dis (int offset, int addr, int len);
 void disassemble(char *str, unsigned int inst);

@@ -511,6 +511,20 @@ int main(int argc, char *argv[])
 				printf("Active PRU is PRU%u.\n\n", pru_num);
 			}
 		}
+		else if (!strcmp(cmd, "J")) {					// J  - Jump to instruction address
+			last_cmd = LAST_CMD_NONE;
+			if (numargs != 1) {
+				cmd_jump_relative(1);
+			} else {
+				char* str = &cmdargs[argptrs[0]];
+				int address = (unsigned int)strtol(str, NULL, 0);
+				if(address < 0 || '+' == str[0]) {
+					cmd_jump_relative(address);
+				} else {
+					cmd_jump(address);
+				}
+			}
+		}
 
 		else if (!strcmp(cmd, "R")) {					// R - Print PRU registers
 			last_cmd = LAST_CMD_NONE;

@@ -80,6 +80,9 @@ void printhelp()
 	printf("    Load program file into instruction memory at 32-bit word "
 			"address provided\n");
 	printf("    (offset from beginning of instruction memory\n\n");
+	printf("J address\n");
+	printf("    Move the program counter to the specified address (absolute or relative). If <address> is not provided, jumps to +1\n\n");
+
 
 	printf("PRU <pru_number>\n");
 	printf("    Set the active PRU where pru_number ranges from 0 to %u\n",
