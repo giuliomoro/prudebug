@@ -214,7 +214,7 @@ void disassemble(char *str, unsigned int inst)
 					break;
 
 				default:
-					sprintf(str, "UNKNOWN-F2");
+					sprintf(str, "UNKNOWN-F2 %#x %#x", inst, SUBOP);
 					break;
 			}
 			break;
@@ -291,7 +291,7 @@ void disassemble(char *str, unsigned int inst)
 			break;
 
 		default:
-			sprintf(str, "UNKNOWN");
+			sprintf(str, "UNKNOWN %#x", inst);
 			break;
 	}
 }
