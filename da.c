@@ -153,6 +153,44 @@ void disassemble(char *str, unsigned int inst)
 					sprintf(str, "%s", f2_inst[SUBOP]);
 					break;
 
+				case 7: // XI/XOUT/XCHG
+					/*
+					// This needs better handling
+					// form, as reported from pasmop.c
+					// OPCODE IM(511), Rdst, OP(124), n    -or-
+					// OPCODE IM(511), Rdst, bn
+					char* op = NULL;
+					switch((inst >> 23) & 0x5F) {
+						case 0x5D: // XIN
+							op = "XIN";
+							break
+						case 0x5E: // XOUT
+							op = "XOUT";
+							break
+						case 0x5F: // XCHG
+							op = "XCHG"
+							break
+						default:
+					}
+					*/
+					// sorry, lazy. Just handling a handful hardcoded cases
+					switch(inst) {
+						case 0x2e852380: // 0x852380
+							sprintf(str, "XIN 10, &r0.b0, 72");
+							break;
+						case 0x2e860980: // 0x860980
+							sprintf(str, "XIN 12, &r0.b0, 20");
+							break;
+						case 0x2f052380: // 0x1052380
+							sprintf(str, "XOUT 10, &r0.b0, 72");
+							break;
+						case 0x2f060980: // 0x1060980
+							sprintf(str, "XOUT 12, &r0.b0, 20");
+							break;
+						default:
+							sprintf(str, "UNKNOWN-XI/XOUT: %#x\n", inst);
+					}
+					break;
 				case 8: { // [I]LOOP
 					const char * I = (inst & (1<<15)) ? "I" : "";
 
