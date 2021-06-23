@@ -277,15 +277,15 @@ void disassemble(char *str, unsigned int inst)
 
 			if (OP == 7) {
 				if (IO) {
-					sprintf(str, "%s R%u%s, R%u, %u, %s", f6_7_inst[LoadStore], Rx, bytenum[RxByteAddr], Rb, Imm, tempstr);
+					sprintf(str, "%s &R%u%s, R%u, %u, %s", f6_7_inst[LoadStore], Rx, bytenum[RxByteAddr], Rb, Imm, tempstr);
 				} else {
-					sprintf(str, "%s R%u%s, R%u, R%u%s, %s", f6_7_inst[LoadStore], Rx, bytenum[RxByteAddr], Rb, Ro, sis[RoSel], tempstr);
+					sprintf(str, "%s &R%u%s, R%u, R%u%s, %s", f6_7_inst[LoadStore], Rx, bytenum[RxByteAddr], Rb, Ro, sis[RoSel], tempstr);
 				}
 			} else {  // OP==4
 				if (IO) {
-					sprintf(str, "%s R%u%s, C%u, %u, %s", f6_4_inst[LoadStore], Rx, bytenum[RxByteAddr], Rb, Imm, tempstr);
+					sprintf(str, "%s &R%u%s, C%u, %u, %s", f6_4_inst[LoadStore], Rx, bytenum[RxByteAddr], Rb, Imm, tempstr);
 				} else {
-					sprintf(str, "%s R%u%s, C%u, R%u%s, %s", f6_4_inst[LoadStore], Rx, bytenum[RxByteAddr], Rb, Ro, sis[RoSel], tempstr);
+					sprintf(str, "%s &R%u%s, C%u, R%u%s, %s", f6_4_inst[LoadStore], Rx, bytenum[RxByteAddr], Rb, Ro, sis[RoSel], tempstr);
 				}
 			}
 			break;
