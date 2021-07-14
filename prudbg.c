@@ -1,4 +1,4 @@
-/* 
+/*
  *
  *  PRU Debug Program
  *  (c) Copyright 2011, 2013 by Arctica Technologies
@@ -92,6 +92,44 @@ struct pdb_tag {
 		.short_name 	= "AM335X",
 		.pruss_address 	= 0x4A300000,
 		.pruss_len 	= 0x40000,
+		.num_of_pruss	= 2,
+		.offsets	= {
+			{
+				.pruss_inst	= 0xD000,
+				.pruss_data	= 0x0000,
+				.pruss_ctrl	= 0x8800
+			},
+			{
+				.pruss_inst	= 0xE000,
+				.pruss_data	= 0x0800,
+				.pruss_ctrl	= 0x9000
+			}
+		}
+	},
+	{
+		.processor 	= "AM57x1",
+		.short_name 	= "AM57X1",
+		.pruss_address 	= 0x4b200000,
+		.pruss_len 	= 0x80000,
+		.num_of_pruss	= 2,
+		.offsets	= {
+			{
+				.pruss_inst	= 0xD000,
+				.pruss_data	= 0x0000,
+				.pruss_ctrl	= 0x8800
+			},
+			{
+				.pruss_inst	= 0xE000,
+				.pruss_data	= 0x0800,
+				.pruss_ctrl	= 0x9000
+			}
+		}
+	},
+	{
+		.processor 	= "AM57x2",
+		.short_name 	= "AM57X2",
+		.pruss_address 	= 0x4b280000,
+		.pruss_len 	= 0x80000,
 		.num_of_pruss	= 2,
 		.offsets	= {
 			{
@@ -696,4 +734,3 @@ int main(int argc, char *argv[])
 
 	return 0;
 }
-
