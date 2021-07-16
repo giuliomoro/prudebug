@@ -17,7 +17,8 @@
 // in the prudbg.c file.
 #define AM1707			0
 #define AM335x			1
-
+#define AM57x1			2
+#define AM57x2			3
 
 // general settings
 #define MAX_CMD_LEN		25
