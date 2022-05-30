@@ -20,6 +20,7 @@
 #define AM57x1			2
 #define AM57x2			3
 #define XJ721E			4
+#define AM62xx			5
 
 // general settings
 #define MAX_CMD_LEN		25
