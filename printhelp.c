@@ -93,8 +93,13 @@ void printhelp()
 	printf("Q\n");
 	printf("    Quit the debugger and return to shell prompt.\n\n");
 
-	printf("R [value]\n");
-	printf("    Display or modify the current PRU registers.\n\n");
+	printf("R\n");
+	printf("    Display current PRU registers.\n\n");
+
+	printf("Rx [value]\n");
+	printf("     Display or modify register value, e.g.:\n");
+	printf("     R2 // prints R2 \n");
+	printf("     R2 0x01234 // set R2 to 0x1234 \n\n");
 
 	printf("RESET\n");
 	printf("    Reset the current PRU\n\n");
