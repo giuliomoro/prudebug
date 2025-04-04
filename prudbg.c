@@ -207,6 +207,16 @@ int strcmpci(char *str1, char *str2, int m) {
 	return r;
 }
 
+static void select_pru(struct pdb_tag* const tag, unsigned int num)
+{
+	if(num < tag->num_of_pruss) {
+		pru_num = num;
+	} else {
+		fprintf(stderr, "Requested PRU %d but only %d are available\n", pru_num, tag->num_of_pruss);
+	}
+	printf("Active PRU is PRU%u.\n\n", pru_num);
+}
+
 /* This function adds 0b... format recognition to strtoll */
 static long parse_long(const char * str) {
 	if (strlen(str) > 2 && strncmp(str, "0b", 2) == 0) {
@@ -585,8 +595,7 @@ int main(int argc, char *argv[])
 			if (numargs != 1) {
 				printf("ERROR: incorrect number of arguments\n");
 			} else {
-				pru_num = parse_long(&cmdargs[argptrs[0]]);
-				printf("Active PRU is PRU%u.\n\n", pru_num);
+				select_pru(&pdb[pi], parse_long(&cmdargs[argptrs[0]]));
 			}
 		}
 		else if (!strcmp(cmd, "J")) {					// J  - Jump to instruction address
