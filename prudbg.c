@@ -440,6 +440,7 @@ int main(int argc, char *argv[])
 			last_cmd = LAST_CMD_NONE;
 			if (numargs == 0) {
 				cmd_print_ctrlreg_uint("CYCLE", PRU_CYCLE_REG);
+				cmd_print_ctrlreg_uint("STALL", PRU_STALL_REG);
 			} else if (numargs == 1) {
 				if (!strncmp(&cmdargs[argptrs[0]], "on", 2)) {
 					cmd_set_ctrlreg_bits(PRU_CTRL_REG, PRU_REG_COUNT_EN);
@@ -448,6 +449,7 @@ int main(int argc, char *argv[])
 				} else if (!strncmp(&cmdargs[argptrs[0]], "clear", 5)) {
 					/* all writes clear the register */
 					cmd_set_ctrlreg(PRU_CYCLE_REG, 0);
+					cmd_set_ctrlreg(PRU_STALL_REG, 0);
 				} else {
 					printf("ERROR: invalid argument\n");
 				}
