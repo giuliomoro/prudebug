@@ -184,6 +184,8 @@ void cmd_printregs()
 
 	if(status_reg > 0x1000) {
 		snprintf(inst_str, sizeof(inst_str), "PC_OUT_OF_RANGE");
+	} else if(ctrl_reg&PRU_REG_RUNSTATE) {
+		snprintf(inst_str, sizeof(inst_str), "not available since PRU is RUNNING");
 	} else {
 		disassemble(inst_str, pru[pru_inst_base[pru_num] + (status_reg&0xFFFF)]);
 	}
