@@ -28,7 +28,7 @@ unsigned int			*pru;
 unsigned int			pru_inst_base[MAX_NUM_OF_PRUS];
 unsigned int			pru_ctrl_base[MAX_NUM_OF_PRUS];
 unsigned int			pru_data_base[MAX_NUM_OF_PRUS];
-unsigned int			pru_num = 0;
+unsigned int			pru_num;
 unsigned int			last_offset, last_addr, last_len, last_cmd;
 unsigned int			last_n_single_step;
 struct breakpoints		bp[MAX_NUM_OF_PRUS][MAX_BREAKPOINTS];
@@ -274,7 +274,8 @@ int main(int argc, char *argv[])
 	opt_pruss_addr = 0;
 	pru_access_mode = ACCESS_GUESS;
 	pi = DEFAULT_PROCESSOR_INDEX;
-	while ((opt = getopt(argc, argv, "?a:p:um")) != -1) {
+	unsigned int requested_pru = 0;
+	while ((opt = getopt(argc, argv, "?a:p:umn:")) != -1) {
 		switch (opt) {
 			case 'a':
 				opt_pruss_addr = parse_long(optarg);
@@ -288,6 +289,10 @@ int main(int argc, char *argv[])
 				pru_access_mode = ACCESS_MEM;
 				break;
 				
+			case 'n':
+				requested_pru = parse_long(optarg);
+				break;
+
 			case 'p':
 				pitemp = -1;
 				for(i=0; pdb[i].num_of_pruss != 0; i++) if (strcmpci(optarg, pdb[i].short_name, MAX_PROC_NAME)) pitemp = i;
@@ -307,7 +312,8 @@ int main(int argc, char *argv[])
 				printf("    -m - force the use of /dev/mem to map PRU memory space\n");
 				printf("    if neither the -u or -m options are used then it will try the UIO first\n");
 				
-				printf("    -p - select processor to use (sets the PRU memory locations)\n");
+				printf("    -n - select PRU number to use\n");
+				printf("    -p - select SoC to use (sets the PRU memory locations)\n");
 				for(i=0; pdb[i].num_of_pruss != 0; i++) {
 					printf("        %s - %s\n", pdb[i].short_name, pdb[i].processor);
 				}
@@ -315,6 +321,8 @@ int main(int argc, char *argv[])
 				return(-1);
 		}
 	}
+	// we defer this to this point to make sure pi has been set first
+	select_pru(&pdb[pi], requested_pru);
 	
 	// setup PRU memory offsets
 	for (i=0; i<pdb[pi].num_of_pruss ;i++) {
