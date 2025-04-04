@@ -97,7 +97,7 @@ void cmd_dis (int offset, int addr, int len)
 
 	for (i=0; i<len; i++) {
 		if (status_reg == (addr + i)) pc_on = 1; else pc_on = 0;
-		disassemble(inst_str, pru[offset+addr+i]);
+		disassemble(inst_str, sizeof(inst_str), pru[offset+addr+i]);
 		printf ("[0x%04x] 0x%08x %s %s\n", addr+i, pru[offset+addr+i], pc[pc_on], inst_str);
 	}
 	printf("\n");
@@ -187,7 +187,7 @@ void cmd_printregs()
 	} else if(ctrl_reg&PRU_REG_RUNSTATE) {
 		snprintf(inst_str, sizeof(inst_str), "not available since PRU is RUNNING");
 	} else {
-		disassemble(inst_str, pru[pru_inst_base[pru_num] + (status_reg&0xFFFF)]);
+		disassemble(inst_str, sizeof(inst_str), pru[pru_inst_base[pru_num] + (status_reg&0xFFFF)]);
 	}
 	printf("    Program counter: 0x%04x\n", (status_reg&0xFFFF));
 	printf("      Current instruction: %s\n", inst_str);
