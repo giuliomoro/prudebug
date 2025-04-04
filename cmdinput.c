@@ -19,12 +19,28 @@
 #include <sys/ioctl.h>
 #include <readline/readline.h>
 #include <readline/history.h>
-
+#include <signal.h>
 
 #include "prudbg.h"
 
+static void interrupt_handler()
+{
+	// readline's built-in handler doesn't actually clear the prompt, so we do it here
+	// See: https://stackoverflow.com/a/36960653
+	rl_free_line_state ();
+	rl_cleanup_after_signal ();
+	RL_UNSETSTATE(RL_STATE_ISEARCH|RL_STATE_NSEARCH|RL_STATE_VIMOTION|RL_STATE_NUMERICARG|RL_STATE_MULTIKEY);
+	rl_line_buffer[rl_point = rl_end = rl_mark = 0] = 0;
+	printf("\n>");
+	fflush(stdout);
+}
+
+
 int cmd_input(char *prompt, char *cmd, char *cmdargs, unsigned int *argptrs, unsigned int *numargs)
 {
+	rl_catch_signals = 0;
+	rl_set_signals();
+	signal(SIGINT, interrupt_handler);
 	unsigned int		i, on_zero;
 	unsigned int full_len;
 
