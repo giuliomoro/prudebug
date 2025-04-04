@@ -183,7 +183,7 @@ void cmd_printregs()
 	printf("      Reset PC:0x%04x  %s, %s, %s, %s, %s\n\n", reset_pc, run_state, single_step, cycle_cnt_en, pru_sleep, proc_en);
 
 	if(status_reg > 0x1000) {
-		sprintf(inst_str, "PC_OUT_OF_RANGE");
+		snprintf(inst_str, sizeof(inst_str), "PC_OUT_OF_RANGE");
 	} else {
 		disassemble(inst_str, pru[pru_inst_base[pru_num] + (status_reg&0xFFFF)]);
 	}

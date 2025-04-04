@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
 	char str[50];
 	while(sizeof(instruction) == read(fd, &instruction, sizeof(instruction)))
 	{
-		disassemble(str, instruction);
+		disassemble(str, sizeof(str), instruction);
 		printf("%s\n", str);
 	}
 	return 0;

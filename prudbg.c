@@ -397,7 +397,7 @@ int main(int argc, char *argv[])
 	// Command prompt handler
 	do {
 		// get command from user
-		sprintf(prompt_str, "PRU%u> ", pru_num);
+		snprintf(prompt_str, sizeof(prompt_str), "PRU%u> ", pru_num);
 		if (cmd_input(prompt_str, cmd, cmdargs, argptrs, &numargs))
 			break;
 

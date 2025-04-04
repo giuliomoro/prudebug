@@ -20,25 +20,25 @@
 #include "prudbg.h"
 
 // util function to decode BurstLen in Format 6 instructions
-void GetBurstLen(char *tempstr, unsigned int BurstLen)
+void GetBurstLen(char *tempstr, unsigned int len, unsigned int BurstLen)
 {
 	if (BurstLen < 124) {
-		sprintf(tempstr, "%u", BurstLen+1);
+		snprintf(tempstr, len, "%u", BurstLen+1);
 	} else if (BurstLen == 124) {
-		sprintf(tempstr, "b0");
+		snprintf(tempstr, len, "b0");
 	} else if (BurstLen == 125) {
-		sprintf(tempstr, "b1");
+		snprintf(tempstr, len, "b1");
 	} else if (BurstLen == 126) {
-		sprintf(tempstr, "b2");
+		snprintf(tempstr, len, "b2");
 	} else if (BurstLen == 127) {
-		sprintf(tempstr, "b3");
+		snprintf(tempstr, len, "b3");
 	} else {
-		sprintf(tempstr, "XX");
+		snprintf(tempstr, len, "XX");
 	}
 }
 
 // disassemble the inst instruction and place string in str
-void disassemble(char *str, unsigned int inst)
+void disassemble(char *str, unsigned int len, unsigned int inst)
 {
 	unsigned short		Imm;
 	unsigned char		OP, ALUOP, Rs2Sel, Rs2, Rs1Sel, Rs1, RdSel, Rd, IO, Imm2, SUBOP, Test;
@@ -76,11 +76,11 @@ void disassemble(char *str, unsigned int inst)
 			Rd = (inst & 0x0000001F);
 			if (IO) {
 				Imm2 = (inst & 0x00FF0000) >> 16;
-				sprintf(str, "%s R%u%s, R%u%s, 0x%02x", f1_inst[ALUOP], Rd, sis[RdSel], Rs1, sis[Rs1Sel], Imm2);
+				snprintf(str, len,"%s R%u%s, R%u%s, 0x%02x", f1_inst[ALUOP], Rd, sis[RdSel], Rs1, sis[Rs1Sel], Imm2);
 			} else {
 				Rs2Sel = (inst & 0x00E00000) >> 21;
 				Rs2 = (inst & 0x001F0000) >> 16;
-				sprintf(str, "%s R%u%s, R%u%s, R%u%s", f1_inst[ALUOP], Rd, sis[RdSel], Rs1, sis[Rs1Sel], Rs2, sis[Rs2Sel]);
+				snprintf(str, len,"%s R%u%s, R%u%s, R%u%s", f1_inst[ALUOP], Rd, sis[RdSel], Rs1, sis[Rs1Sel], Rs2, sis[Rs2Sel]);
 			}
 			break;
 
@@ -95,16 +95,16 @@ void disassemble(char *str, unsigned int inst)
 					if (IO) {
 						Imm = (inst & 0x00FFFF00) >> 8;
 						if (SUBOP == 0)
-							sprintf(str, "%s 0x%04x", f2_inst[SUBOP], Imm);
+							snprintf(str, len,"%s 0x%04x", f2_inst[SUBOP], Imm);
 						else
-							sprintf(str, "%s R%u%s, 0x%04x", f2_inst[SUBOP], Rd, sis[RdSel], Imm);
+							snprintf(str, len,"%s R%u%s, 0x%04x", f2_inst[SUBOP], Rd, sis[RdSel], Imm);
 					} else {
 						Rs2Sel = (inst & 0x00E00000) >> 21;
 						Rs2 = (inst & 0x001F0000) >> 16;
 						if (SUBOP == 0)
-							sprintf(str, "%s R%u%s", f2_inst[SUBOP], Rs2, sis[Rs2Sel]);
+							snprintf(str, len,"%s R%u%s", f2_inst[SUBOP], Rs2, sis[Rs2Sel]);
 						else
-							sprintf(str, "%s R%u%s, R%u%s", f2_inst[SUBOP], Rd, sis[RdSel], Rs2, sis[Rs2Sel]);
+							snprintf(str, len,"%s R%u%s, R%u%s", f2_inst[SUBOP], Rd, sis[RdSel], Rs2, sis[Rs2Sel]);
 					}
 					break;
 
@@ -112,7 +112,7 @@ void disassemble(char *str, unsigned int inst)
 					Imm = (inst & 0x00FFFF00) >> 8;
 					RdSel = (inst & 0x000000E0) >> 5;
 					Rd = (inst & 0x0000001F);
-					sprintf(str, "%s R%u%s, 0x%04x", f2_inst[SUBOP], Rd, sis[RdSel], Imm);
+					snprintf(str, len,"%s R%u%s, 0x%04x", f2_inst[SUBOP], Rd, sis[RdSel], Imm);
 					break;
 
 				case 3:  // LMBD
@@ -126,9 +126,9 @@ void disassemble(char *str, unsigned int inst)
 					Imm2 = (inst & 0x00FF0000) >> 16;
 					
 					if (IO) {
-						sprintf(str, "%s R%u%s, R%u%s, 0x%04x", f2_inst[SUBOP], Rd, sis[RdSel], Rs1, sis[Rs1Sel], Imm2);
+						snprintf(str, len,"%s R%u%s, R%u%s, 0x%04x", f2_inst[SUBOP], Rd, sis[RdSel], Rs1, sis[Rs1Sel], Imm2);
 					} else {
-						sprintf(str, "%s R%u%s, R%u%s, R%u%s", f2_inst[SUBOP], Rd, sis[RdSel], Rs1, sis[Rs1Sel], Rs2, sis[Rs2Sel]);
+						snprintf(str, len,"%s R%u%s, R%u%s, R%u%s", f2_inst[SUBOP], Rd, sis[RdSel], Rs1, sis[Rs1Sel], Rs2, sis[Rs2Sel]);
 					}
 
 					break;
@@ -142,15 +142,15 @@ void disassemble(char *str, unsigned int inst)
 					Imm2 = (inst & 0x00FF0000) >> 16;
 
 					if (IO) {
-						sprintf(str, "%s R%u%s, 0x%04x", f2_inst[SUBOP], Rd, sis[RdSel], Imm2);
+						snprintf(str, len,"%s R%u%s, 0x%04x", f2_inst[SUBOP], Rd, sis[RdSel], Imm2);
 					} else {
-						sprintf(str, "%s R%u%s, R%u%s", f2_inst[SUBOP], Rd, sis[RdSel], Rs2, sis[Rs2Sel]);
+						snprintf(str, len,"%s R%u%s, R%u%s", f2_inst[SUBOP], Rd, sis[RdSel], Rs2, sis[Rs2Sel]);
 					}
 
 					break;
 
 				case 5:  // HALT
-					sprintf(str, "%s", f2_inst[SUBOP]);
+					snprintf(str, len,"%s", f2_inst[SUBOP]);
 					break;
 
 				case 7: // XI/XOUT/XCHG
@@ -176,19 +176,19 @@ void disassemble(char *str, unsigned int inst)
 					// sorry, lazy. Just handling a handful hardcoded cases
 					switch(inst) {
 						case 0x2e852380: // 0x852380
-							sprintf(str, "XIN 10, &r0.b0, 72");
+							snprintf(str, len,"XIN 10, &r0.b0, 72");
 							break;
 						case 0x2e860980: // 0x860980
-							sprintf(str, "XIN 12, &r0.b0, 20");
+							snprintf(str, len,"XIN 12, &r0.b0, 20");
 							break;
 						case 0x2f052380: // 0x1052380
-							sprintf(str, "XOUT 10, &r0.b0, 72");
+							snprintf(str, len,"XOUT 10, &r0.b0, 72");
 							break;
 						case 0x2f060980: // 0x1060980
-							sprintf(str, "XOUT 12, &r0.b0, 20");
+							snprintf(str, len,"XOUT 12, &r0.b0, 20");
 							break;
 						default:
-							sprintf(str, "UNKNOWN-XI/XOUT: %#x\n", inst);
+							snprintf(str, len,"UNKNOWN-XI/XOUT: %#x\n", inst);
 					}
 					break;
 				case 8: { // [I]LOOP
@@ -201,20 +201,20 @@ void disassemble(char *str, unsigned int inst)
 					Imm2   = (inst & 0x00FF0000) >> 16;
 
 					if (IO) {
-						sprintf(str, "%s%s %d, 0x%04x", I, f2_inst[SUBOP], BrOff, Imm2);
+						snprintf(str, len,"%s%s %d, 0x%04x", I, f2_inst[SUBOP], BrOff, Imm2);
 					} else {
-						sprintf(str, "%s%s %d, R%u%s", I, f2_inst[SUBOP], BrOff, Rs2, sis[Rs2Sel]);
+						snprintf(str, len,"%s%s %d, R%u%s", I, f2_inst[SUBOP], BrOff, Rs2, sis[Rs2Sel]);
 					}
 					break;
 				}
 
 				case 15:  // SLP
 					Imm = (inst & 0x00800000) >> 23;
-					sprintf(str, "%s %u", f2_inst[SUBOP], Imm);
+					snprintf(str, len,"%s %u", f2_inst[SUBOP], Imm);
 					break;
 
 				default:
-					sprintf(str, "UNKNOWN-F2 %#x %#x", inst, SUBOP);
+					snprintf(str, len,"UNKNOWN-F2 %#x %#x", inst, SUBOP);
 					break;
 			}
 			break;
@@ -232,12 +232,12 @@ void disassemble(char *str, unsigned int inst)
 			if (BrOff & 0x0200) BrOff |= 0xFC00;
 
 			if (Test == 7) {
-				sprintf(str, "QBA %d", BrOff);
+				snprintf(str, len,"QBA %d", BrOff);
 			} else {
 				if (IO) {
-					sprintf(str, "QB%s %d, R%u%s, %u", f4_inst[Test], BrOff, Rs1, sis[Rs1Sel], Imm);
+					snprintf(str, len,"QB%s %d, R%u%s, %u", f4_inst[Test], BrOff, Rs1, sis[Rs1Sel], Imm);
 				} else {
-					sprintf(str, "QB%s %d, R%u%s, R%u%s", f4_inst[Test], BrOff, Rs1, sis[Rs1Sel], Rs2, sis[Rs2Sel]);
+					snprintf(str, len,"QB%s %d, R%u%s, R%u%s", f4_inst[Test], BrOff, Rs1, sis[Rs1Sel], Rs2, sis[Rs2Sel]);
 				}
 			}
 
@@ -255,9 +255,9 @@ void disassemble(char *str, unsigned int inst)
 			if (BrOff & 0x0200) BrOff |= 0xFC00;
 
 			if (IO) {
-				sprintf(str, "QB%s %d, R%u%s, %u", f5_inst[Test], BrOff, Rs1, sis[Rs1Sel], Imm);
+				snprintf(str, len,"QB%s %d, R%u%s, %u", f5_inst[Test], BrOff, Rs1, sis[Rs1Sel], Imm);
 			} else {
-				sprintf(str, "QB%s %d, R%u%s, R%u%s", f5_inst[Test], BrOff, Rs1, sis[Rs1Sel], Rs2, sis[Rs2Sel]);
+				snprintf(str, len,"QB%s %d, R%u%s, R%u%s", f5_inst[Test], BrOff, Rs1, sis[Rs1Sel], Rs2, sis[Rs2Sel]);
 			}
 			
 			break;
@@ -273,25 +273,25 @@ void disassemble(char *str, unsigned int inst)
 			Ro = (inst & 0x001F0000) >> 16;
 			Rb = (inst & 0x00001F00) >> 8;
 			Imm = (inst & 0x00FF0000) >> 16;
-			GetBurstLen(tempstr, BurstLen);
+			GetBurstLen(tempstr, sizeof(tempstr), BurstLen);
 
 			if (OP == 7) {
 				if (IO) {
-					sprintf(str, "%s &R%u%s, R%u, %u, %s", f6_7_inst[LoadStore], Rx, bytenum[RxByteAddr], Rb, Imm, tempstr);
+					snprintf(str, len,"%s &R%u%s, R%u, %u, %s", f6_7_inst[LoadStore], Rx, bytenum[RxByteAddr], Rb, Imm, tempstr);
 				} else {
-					sprintf(str, "%s &R%u%s, R%u, R%u%s, %s", f6_7_inst[LoadStore], Rx, bytenum[RxByteAddr], Rb, Ro, sis[RoSel], tempstr);
+					snprintf(str, len,"%s &R%u%s, R%u, R%u%s, %s", f6_7_inst[LoadStore], Rx, bytenum[RxByteAddr], Rb, Ro, sis[RoSel], tempstr);
 				}
 			} else {  // OP==4
 				if (IO) {
-					sprintf(str, "%s &R%u%s, C%u, %u, %s", f6_4_inst[LoadStore], Rx, bytenum[RxByteAddr], Rb, Imm, tempstr);
+					snprintf(str, len,"%s &R%u%s, C%u, %u, %s", f6_4_inst[LoadStore], Rx, bytenum[RxByteAddr], Rb, Imm, tempstr);
 				} else {
-					sprintf(str, "%s &R%u%s, C%u, R%u%s, %s", f6_4_inst[LoadStore], Rx, bytenum[RxByteAddr], Rb, Ro, sis[RoSel], tempstr);
+					snprintf(str, len,"%s &R%u%s, C%u, R%u%s, %s", f6_4_inst[LoadStore], Rx, bytenum[RxByteAddr], Rb, Ro, sis[RoSel], tempstr);
 				}
 			}
 			break;
 
 		default:
-			sprintf(str, "UNKNOWN %#x", inst);
+			snprintf(str, len,"UNKNOWN %#x", inst);
 			break;
 	}
 }

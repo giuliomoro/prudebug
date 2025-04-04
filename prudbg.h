@@ -118,7 +118,7 @@ void cmd_jump(unsigned int addr);
 void cmd_jump_relative(int jump);
 void cmd_soft_reset();
 void cmd_dis (int offset, int addr, int len);
-void disassemble(char *str, unsigned int inst);
+void disassemble(char *str, unsigned int len, unsigned int inst);
 
 void cmd_print_watch();
 void cmd_clear_watch (unsigned int wanum);
