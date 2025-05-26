@@ -39,8 +39,19 @@ void cmd_print_breakpoints()
 // set breakpoint
 void cmd_set_breakpoint (unsigned int bpnum, unsigned int addr)
 {
-	bp[pru_num][bpnum].state = BP_ACTIVE;
-	bp[pru_num][bpnum].address = addr;
+	int found = -1;
+	for (unsigned int i=0; i<MAX_BREAKPOINTS; i++) {
+		if(i != bpnum) {
+			if(BP_ACTIVE == bp[pru_num][i].state && bp[pru_num][i].address == addr)
+				found = i;
+		}
+	}
+	if (found >= 0) {
+		fprintf(stderr, "Error: trying to insert breakpoint %d at addr %#x, but %d is already set at that address\n", bpnum, addr, found);
+	} else {
+		bp[pru_num][bpnum].state = BP_ACTIVE;
+		bp[pru_num][bpnum].address = addr;
+	}
 }
 
 // clear breakpoint
