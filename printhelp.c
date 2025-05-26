@@ -25,7 +25,7 @@ void printhelp()
 			"display the next\n");
 	printf("      block\n\n");
 
-	printf("BR [breakpoint_number [address]]\n");
+	printf("BR [breakpoint_number [address [s]]]\n");
 	printf("    View or set an instruction breakpoint\n");
 	printf("     - 'b' by itself will display current breakpoints\n");
 	printf("     - breakpoint_number is the breakpoint reference and ranges"
@@ -33,6 +33,7 @@ void printhelp()
 	printf("     - address is the instruction word address that the "
 			"processor should stop\n");
 	printf("       at (instruction is not executed)\n");
+	printf("     - \"s\" forces it to be a software breakpoint that requires single-stepping and may break real-time performance\n");
 	printf("     - if no address is provided, then the breakpoint is "
 			"cleared\n\n");
 
@@ -167,7 +168,7 @@ void printhelp()
 void printhelpbrief()
 {
 	printf("Command help\n\n");
-	printf("    BR [breakpoint_number [address]] - View or set an instruction breakpoint\n");
+	printf("    BR [breakpoint_number [address [s]]] - View or set an instruction breakpoint, \"s\" makes it a software breakpoint\n");
 	printf("    D <address> [length] - Raw dump of PRU data memory (byte offset from beginning of full PRU memory block - all PRUs)\n");
 	printf("    DD <address> [length] - Dump data memory (byte offset from beginning of PRU data memory)\n");
 	printf("    DI <address> [length] - Dump instruction memory (byte offset from beginning of PRU instruction memory)\n");

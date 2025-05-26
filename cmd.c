@@ -51,7 +51,7 @@ void cmd_print_breakpoints()
 	printf("##  Address\n");
 	for (i=0; i<MAX_BREAKPOINTS; i++) {
 		if (bp[pru_num][i].state == BP_ACTIVE) {
-			printf("%02u  0x%04x\n", i, bp[pru_num][i].address);
+			printf("%02u  0x%04x %s\n", i, bp[pru_num][i].address, bp[pru_num][i].hw ? "hw" : "sw");
 		} else {
 			printf("%02u  UNUSED\n", i);
 		}
@@ -60,7 +60,7 @@ void cmd_print_breakpoints()
 }
 
 // set breakpoint
-void cmd_set_breakpoint (unsigned int bpnum, unsigned int addr)
+void cmd_set_breakpoint (unsigned int bpnum, unsigned int addr, unsigned int hw)
 {
 	int found = -1;
 	for (unsigned int i=0; i<MAX_BREAKPOINTS; i++) {
@@ -74,6 +74,7 @@ void cmd_set_breakpoint (unsigned int bpnum, unsigned int addr)
 	} else {
 		bp[pru_num][bpnum].state = BP_ACTIVE;
 		bp[pru_num][bpnum].address = addr;
+		bp[pru_num][bpnum].hw = hw;
 	}
 }
 

@@ -79,6 +79,7 @@
 // global structures
 struct breakpoints {
 	unsigned char		state;
+	unsigned char		hw;
 	unsigned int		address;
 };
 
@@ -101,7 +102,7 @@ extern struct watchvariable	wa[MAX_NUM_OF_PRUS][MAX_WATCH];
 
 // function prototypes
 void cmd_print_breakpoints();
-void cmd_set_breakpoint (unsigned int bpnum, unsigned int addr);
+void cmd_set_breakpoint (unsigned int bpnum, unsigned int addr, unsigned int hw);
 void cmd_clear_breakpoint (unsigned int bpnum);
 int cmd_input(char *prompt, char *cmd, char *cmdargs, unsigned int *argptrs,
 	      unsigned int *numargs);
