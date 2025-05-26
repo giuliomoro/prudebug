@@ -20,6 +20,20 @@
 
 #include "prudbg.h"
 
+unsigned int get_status(){
+	return pru[pru_ctrl_base[pru_num] + PRU_STATUS_REG];
+}
+
+static unsigned int get_program_counter()
+{
+	return get_status() & 0xFFFF;
+}
+
+static uint32_t get_instruction(unsigned int addr)
+{
+	return pru[pru_inst_base[pru_num] + addr];
+}
+
 // breakpoint management
 void cmd_print_breakpoints()
 {
@@ -100,14 +114,14 @@ void cmd_dis (int offset, int addr, int len)
 {
 	int			i;
 	char			inst_str[50];
-	unsigned int		status_reg;
+	unsigned int		program_counter;
 	char			*pc[] = {"  ", ">>"};
 	int			pc_on = 0;
 
-	status_reg = (pru[pru_ctrl_base[pru_num] + PRU_STATUS_REG]) & 0xFFFF;
+	program_counter = get_program_counter();
 
 	for (i=0; i<len; i++) {
-		if (status_reg == (addr + i)) pc_on = 1; else pc_on = 0;
+		if (program_counter == (addr + i)) pc_on = 1; else pc_on = 0;
 		disassemble(inst_str, sizeof(inst_str), pru[offset+addr+i]);
 		printf ("[0x%04x] 0x%08x %s %s\n", addr+i, pru[offset+addr+i], pc[pc_on], inst_str);
 	}
@@ -156,13 +170,12 @@ int cmd_loadprog(unsigned int addr, char *fn)
 // print current PRU registers
 void cmd_printregs()
 {
-	unsigned int		ctrl_reg, reset_pc, status_reg;
+	unsigned int		ctrl_reg, reset_pc;
 	char			*run_state, *single_step, *cycle_cnt_en, *pru_sleep, *proc_en;
 	unsigned int		i;
 	char			inst_str[50];
 
 	ctrl_reg = pru[pru_ctrl_base[pru_num] + PRU_CTRL_REG];
-	status_reg = pru[pru_ctrl_base[pru_num] + PRU_STATUS_REG];
 	reset_pc = (ctrl_reg >> 16);
 	if (ctrl_reg&PRU_REG_RUNSTATE)
 		run_state = "RUNNING";
@@ -193,14 +206,14 @@ void cmd_printregs()
 	printf("    Control register: 0x%08x\n", ctrl_reg);
 	printf("      Reset PC:0x%04x  %s, %s, %s, %s, %s\n\n", reset_pc, run_state, single_step, cycle_cnt_en, pru_sleep, proc_en);
 
-	if(status_reg > 0x1000) {
+	if(get_program_counter() > 0x1000) {
 		snprintf(inst_str, sizeof(inst_str), "PC_OUT_OF_RANGE");
 	} else if(ctrl_reg&PRU_REG_RUNSTATE) {
 		snprintf(inst_str, sizeof(inst_str), "not available since PRU is RUNNING");
 	} else {
-		disassemble(inst_str, sizeof(inst_str), pru[pru_inst_base[pru_num] + (status_reg&0xFFFF)]);
+		disassemble(inst_str, sizeof(inst_str), get_instruction(get_program_counter()));
 	}
-	printf("    Program counter: 0x%04x\n", (status_reg&0xFFFF));
+	printf("    Program counter: 0x%04x\n", get_program_counter());
 	printf("      Current instruction: %s\n", inst_str);
 	printf("      Cycle counter: %u, stall counter: %u\n\n", pru[pru_ctrl_base[pru_num] + PRU_CYCLE_REG], pru[pru_ctrl_base[pru_num] + PRU_STALL_REG]);
 
@@ -296,13 +309,8 @@ static void ctrl_set_pcreset(unsigned int address){
 	ctrl_set(ctrl_reg);
 }
 
-unsigned int status_get(){
-	return pru[pru_ctrl_base[pru_num] + PRU_STATUS_REG];
-}
-
 void cmd_jump_relative(int jump){
-	unsigned int status_reg = status_get();
-	cmd_jump(status_reg + jump);
+	cmd_jump(get_program_counter() + jump);
 }
 
 void cmd_jump(unsigned int address){
@@ -367,7 +375,6 @@ void cmd_runss(long count)
 		for (i=0; i<MAX_BREAKPOINTS; i++) if ((bp[pru_num][i].state == BP_ACTIVE) && (bp[pru_num][i].address == addr)) done = 1;
 
 		// check if we've hit a watch point
-//		addr = pru[pru_ctrl_base[pru_num] + PRU_STATUS_REG] & 0xFFFF;
 		for (i=0; i<MAX_WATCH; ++i) {
 			unsigned char *pru_u8 = (unsigned char*)pru;
 
