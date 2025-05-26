@@ -4,6 +4,12 @@
 #object files
 *.o
 
+#vim tempfiles
+.*.sw?
+
+#git tempfiles
+*.orig
+
 #compiled binary
 prudebug
 prudis
