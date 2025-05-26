@@ -441,7 +441,7 @@ int main(int argc, char *argv[])
 				} else {
 					printf("ERROR: breakpoint number must be equal to or between 0 and %u\n", MAX_BREAKPOINTS-1);
 				}
-			} else if (numargs == 2 && (numargs == 3 && !strcasecmp("S", &cmdargs[argptrs[2]]))) {
+			} else if (numargs == 2 || (numargs == 3 && !strcasecmp("S", &cmdargs[argptrs[2]]))) {
 				bpnum = parse_long(&cmdargs[argptrs[0]]);
 				addr = parse_long(&cmdargs[argptrs[1]]);
 				unsigned int hw = numargs == 3 ? 0 : 1; // "s" as an extra argument makes it a sw breakpoint

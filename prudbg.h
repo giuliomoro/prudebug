@@ -8,6 +8,7 @@
 
 #ifndef PRUDBG_H
 #define PRUDBG_H
+#include <stdint.h>
 
 // default processor to use if none is specified on the command line when prudebug is started
 #define DEFAULT_PROCESSOR_INDEX	AM335x
@@ -51,6 +52,8 @@
 #define PRU_REG_PROC_EN		0x00000002
 #define PRU_REG_SOFT_RESET	0x00000001
 
+#define INST_HALT 0x2a000000
+
 // defines for PRU memory mapping method requeste by user
 #define ACCESS_GUESS		0
 #define ACCESS_UIO		1
@@ -81,6 +84,7 @@ struct breakpoints {
 	unsigned char		state;
 	unsigned char		hw;
 	unsigned int		address;
+	uint32_t		instruction;
 };
 
 struct watchvariable {

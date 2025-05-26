@@ -35,6 +35,42 @@ static uint32_t get_instruction(unsigned int addr)
 	return pru[pru_inst_base[pru_num] + addr];
 }
 
+static inline unsigned int br_get_offset(unsigned int i)
+{
+	return pru_inst_base[pru_num] + bp[pru_num][i].address;
+}
+
+static inline void run_hw_disable(unsigned int i)
+{
+	unsigned int offset = br_get_offset(i);
+	pru[offset] = bp[pru_num][i].instruction;
+}
+
+static void run_hw_disable_all()
+{
+	for (unsigned int i=0; i<MAX_BREAKPOINTS; i++) {
+		if (bp[pru_num][i].state == BP_ACTIVE && bp[pru_num][i].hw) {
+			run_hw_disable(i);
+		}
+	}
+}
+
+static inline void run_hw_enable(unsigned int i)
+{
+	unsigned int offset = br_get_offset(i);
+	bp[pru_num][i].instruction = pru[offset];
+	pru[offset] = INST_HALT;
+}
+
+static void run_hw_enable_all()
+{
+	for (unsigned int i=0; i<MAX_BREAKPOINTS; i++) {
+		if (bp[pru_num][i].state == BP_ACTIVE && bp[pru_num][i].hw) {
+			run_hw_enable(i);
+		}
+	}
+}
+
 static volatile int loop_should_stop;
 
 static void loop_signal_handler(int signum) {
@@ -359,6 +395,29 @@ void cmd_runss(long count)
 		count = -1;
 		printf("Running (will run until a breakpoint is hit or ctrl-C is pressed)....\n");
 	}
+	unsigned int hw_break = 0;
+	unsigned int sw_break = 0;
+	unsigned int sw_watch = 0;
+	int is_on_breakpoint = -1;
+	addr = get_program_counter();
+	for (i=0; i<MAX_BREAKPOINTS; i++) {
+		if (bp[pru_num][i].state == BP_ACTIVE) {
+			if(bp[pru_num][i].hw) {
+				hw_break++;
+				if(bp[pru_num][i].address == addr)
+					is_on_breakpoint = i;
+			} else {
+				sw_break++;
+			}
+		}
+	}
+	for (i=0; i<MAX_WATCH; ++i) {
+		if (wa[pru_num][i].state != WA_UNUSED)
+			sw_watch++;
+	}
+
+	int run_hw = !sw_watch && !sw_break && count < 0;
+	int run_hw_hit = -1;
 
 	signal(SIGINT, loop_signal_handler);
 	// enter single-step loop
@@ -369,14 +428,48 @@ void cmd_runss(long count)
 
 		// prep some 'select' magic to detect keypress to escape
 
-		// set single step mode and enable processor
-		ctrl_reg = pru[pru_ctrl_base[pru_num] + PRU_CTRL_REG];
-		ctrl_reg |= PRU_REG_PROC_EN | PRU_REG_SINGLE_STEP;
-		pru[pru_ctrl_base[pru_num] + PRU_CTRL_REG] = ctrl_reg;
+		if (run_hw) {
+			printf("Running with hw breakpoints (real-time performance guaranteed%s)\n", is_on_breakpoint ? " after the first instruction" : "");
+			run_hw_enable_all();
+			if(is_on_breakpoint >= 0) {
+				run_hw_disable(is_on_breakpoint);
+				// single-step exactly once with this breakpoint disabled
+				ctrl_reg = pru[pru_ctrl_base[pru_num] + PRU_CTRL_REG];
+				ctrl_reg |= PRU_REG_PROC_EN | PRU_REG_SINGLE_STEP;
+				ctrl_reg &= ~PRU_REG_SINGLE_STEP;
+				while(addr == get_program_counter())
+					;
+				// once we've stepped and gotten out of the breakpoint,
+				// re-enable it
+				run_hw_enable(is_on_breakpoint);
+			}
+			// run as usual, it will stop when it hits one of the
+			// HALT we added in run_hw_enable_all()
+			cmd_run();
+			// wait until we reach HALT or a keypress
+			while(!loop_should_stop)
+			{
+				usleep(50000);
+				if(get_instruction(get_program_counter()) == INST_HALT) {
+					done = 1;
+					break;
+				}
+			}
+		} else {
+			printf("Running with sw single-stepping (real-time performance not guaranteed)\n");
+			// set single step mode and enable processor
+			ctrl_reg = pru[pru_ctrl_base[pru_num] + PRU_CTRL_REG];
+			ctrl_reg |= PRU_REG_PROC_EN | PRU_REG_SINGLE_STEP;
+			pru[pru_ctrl_base[pru_num] + PRU_CTRL_REG] = ctrl_reg;
+		}
 
 		// check if we've hit a breakpoint
-		addr = pru[pru_ctrl_base[pru_num] + PRU_STATUS_REG] & 0xFFFF;
-		for (i=0; i<MAX_BREAKPOINTS; i++) if ((bp[pru_num][i].state == BP_ACTIVE) && (bp[pru_num][i].address == addr)) done = 1;
+		addr = get_program_counter();
+		for (i=0; i<MAX_BREAKPOINTS; i++) if ((bp[pru_num][i].state == BP_ACTIVE) && (bp[pru_num][i].address == addr)) {
+			done = 1;
+			if(run_hw)
+				run_hw_hit = i;
+		}
 
 		// check if we've hit a watch point
 		for (i=0; i<MAX_WATCH; ++i) {
@@ -415,8 +508,11 @@ void cmd_runss(long count)
 		}
 
 		// check if we are on a HALT instruction - if so, stop single step execution
-		if (pru[pru_inst_base[pru_num] + addr] == 0x2a000000) {
-			printf("\nHALT instruction hit.\n");
+		if (get_instruction(addr) == INST_HALT) {
+			if(run_hw_hit != -1)
+				printf("\nBreakpoint %d hit at %#x.\n", run_hw_hit, addr);
+			else
+				printf("\nHALT instruction hit.\n");
 			done = 1;
 		}
 
@@ -424,6 +520,9 @@ void cmd_runss(long count)
 		// increase time
 		t_cyc++;
 	} while (!loop_should_stop && (!done) && (count != 0));
+	if(run_hw) {
+		run_hw_disable_all();
+	}
 
 	printf("\n");
 
