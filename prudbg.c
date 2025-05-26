@@ -490,8 +490,7 @@ int main(int argc, char *argv[])
 					addr = parse_long(&cmdargs[argptrs[0]]);
 					len = 16*4;
 				}
-				if ((addr < 0) || (addr     > ((1+MAX_PRU_MEM)*4 - 1)) ||
-				    (len < 0)  || (addr+len > ((1+MAX_PRU_MEM)*4))) {
+				if ((addr > ((1+MAX_PRU_MEM)*4 - 1)) || (addr+len > ((1+MAX_PRU_MEM)*4))) {
 					printf("ERROR: arguments out of range.\n");
 				} else if (numargs > 2) {
 					printf("ERROR: Incorrect format.  Please use help command to get command details.\n");
@@ -529,8 +528,7 @@ int main(int argc, char *argv[])
 					addr = parse_long(&cmdargs[argptrs[0]]);
 					len = 16;
 				}
-				if ((addr < 0) || (addr     > MAX_PRU_MEM - 1) ||
-            (len < 0)  || (addr+len > MAX_PRU_MEM)) {
+				if ((addr > MAX_PRU_MEM - 1) || (addr+len > MAX_PRU_MEM)) {
 					printf("ERROR: arguments out of range.\n");
 				} else if (numargs > 2) {
 					printf("ERROR: Incorrect format.  Please use help command to get command details.\n");
@@ -736,7 +734,7 @@ int main(int argc, char *argv[])
 			if (numargs < 2) {
 				printf("ERROR: too few arguments\n");
 			} else {
-				if ((addr < 0) || (addr > ((1+MAX_PRU_MEM)*4 - 1)) ||
+				if ((addr > ((1+MAX_PRU_MEM)*4 - 1)) ||
 				    (addr+numargs-1 > ((1+MAX_PRU_MEM)*4))) {
 					printf("ERROR: arguments out of range.\n");
 				} else {
