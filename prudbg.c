@@ -24,7 +24,7 @@
 
 
 // global variable definitions
-unsigned int			*pru;
+volatile unsigned int		*pru;
 unsigned int			pru_inst_base[MAX_NUM_OF_PRUS];
 unsigned int			pru_ctrl_base[MAX_NUM_OF_PRUS];
 unsigned int			pru_data_base[MAX_NUM_OF_PRUS];

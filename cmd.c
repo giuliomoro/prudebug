@@ -203,7 +203,7 @@ int cmd_loadprog(unsigned int addr, char *fn)
 		if (f == -1) {
 			printf("ERROR: could not open file 2\n");
 		} else {
-			if (read(f, &pru[pru_inst_base[pru_num] + addr], file_info.st_size) < 0) {
+			if (read(f, (unsigned int*)&pru[pru_inst_base[pru_num] + addr], file_info.st_size) < 0) {
 				perror("loadprog");
 			}
 			close(f);

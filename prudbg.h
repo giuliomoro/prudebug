@@ -97,7 +97,7 @@ struct watchvariable {
 
 
 // global variables
-extern unsigned int		*pru;
+extern volatile unsigned int	*pru;
 extern unsigned int		pru_inst_base[], pru_ctrl_base[], pru_data_base[];
 extern unsigned int		pru_num;
 extern struct breakpoints	bp[MAX_NUM_OF_PRUS][MAX_BREAKPOINTS];
