@@ -74,6 +74,13 @@ void printhelp()
 	printf("    or given as '0', stepping will continue until otherwise "
 			"interrupted.\n\n");
 
+	printf("TRACE [<k_elements>] [<stop_on_halt> [<filename>]]\n");
+	printf("    Start processor execution while sampling its program counter]\n");
+	printf("    - <k_elements> how many thousand elements to store (defaults to 1)\n");
+	printf("    - if <stop_on_halt> is true, it will stop automatically when a HALT\n");
+	printf("      instruction is encountered. This will result in lower sampling rate.\n");
+	printf("    - if <filename> is passed, the trace will be written to it instead of stdout\n\n");
+
 	printf("HALT\n");
 	printf("    Halt the processor\n\n");
 
@@ -175,6 +182,7 @@ void printhelpbrief()
 	printf("    DIS <32bit-address> [length] - Disassemble instruction memory (32-bit word offset from beginning of PRU instruction memory)\n");
 	printf("    G - Start processor execution of instructions (at current IP)\n");
 	printf("    GSS - Start processor execution using automatic single stepping - this allows running a program with breakpoints\n");
+	printf("    TRACE [<stop_on_halt> [<filename>]] - Start processor execution while sampling its program counter]\n");
 	printf("    HALT - Halt the processor\n");
 	printf("    L <32bit-address> file_name - Load program file into instruction memory\n");
 	printf("    PRU pru_number - Set the active PRU where pru_number ranges from 0 to %u\n", NUM_OF_PRU - 1);

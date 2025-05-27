@@ -119,6 +119,7 @@ int cmd_loadprog(unsigned int addr, char *fn);
 void cmd_run();
 void cmd_runss(long count);
 void cmd_single_step(unsigned int N);
+void cmd_trace(unsigned int k_elements, unsigned int on_halt, const char* filename);
 void cmd_halt();
 void cmd_jump(unsigned int addr);
 void cmd_jump_relative(int jump);
