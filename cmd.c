@@ -17,6 +17,7 @@
 #include <sys/ioctl.h>
 #include <sys/select.h>
 #include <string.h>
+#include <signal.h>
 
 #include "prudbg.h"
 
@@ -32,6 +33,14 @@ static unsigned int get_program_counter()
 static uint32_t get_instruction(unsigned int addr)
 {
 	return pru[pru_inst_base[pru_num] + addr];
+}
+
+static volatile int loop_should_stop;
+
+static void loop_signal_handler(int signum) {
+	if (signum == SIGINT) {
+		loop_should_stop = 1;
+	}
 }
 
 // breakpoint management
@@ -342,17 +351,15 @@ void cmd_runss(long count)
 	unsigned int		done = 0;
 	unsigned int		ctrl_reg;
 	unsigned long		t_cyc = 0;
-	fd_set			rd_fdset;
-	struct timeval		tv;
-	int			r;
 
 	if (count > 0) {
 		printf("Running (will run for %ld steps or until a breakpoint is hit or a key is pressed)....\n", count);
 	} else {
 		count = -1;
-		printf("Running (will run until a breakpoint is hit or a key is pressed)....\n");
+		printf("Running (will run until a breakpoint is hit or ctrl-C is pressed)....\n");
 	}
 
+	signal(SIGINT, loop_signal_handler);
 	// enter single-step loop
 	do {
 		// decrease count
@@ -360,10 +367,6 @@ void cmd_runss(long count)
 			--count;
 
 		// prep some 'select' magic to detect keypress to escape
-		FD_ZERO(&rd_fdset);
-		FD_SET(STDIN_FILENO, &rd_fdset);
-		tv.tv_sec = 0;
-		tv.tv_usec = 0;
 
 		// set single step mode and enable processor
 		ctrl_reg = pru[pru_ctrl_base[pru_num] + PRU_CTRL_REG];
@@ -416,15 +419,10 @@ void cmd_runss(long count)
 			done = 1;
 		}
 
-		// check if the user has attempted to stop execution of the PRU with a keypress
-		r = select (STDIN_FILENO+1, &rd_fdset, NULL, NULL, &tv);
 
 		// increase time
 		t_cyc++;
-	} while ((!done) && (r == 0) && (count != 0));
-
-	// if there is a character in the stdin queue, read the character
-	if (r > 0) getchar();
+	} while (!loop_should_stop && (!done) && (count != 0));
 
 	printf("\n");
 
