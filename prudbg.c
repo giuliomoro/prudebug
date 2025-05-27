@@ -758,6 +758,20 @@ int main(int argc, char *argv[])
 			}
 		}
 
+		else if (!strcmp(cmd, "TRACE")) {
+			last_cmd = LAST_CMD_NONE;
+			unsigned int k_elements = 100;
+			unsigned int on_halt = 1;
+			char const* filename = NULL;
+			if (numargs > 0)
+				k_elements = parse_long(&cmdargs[argptrs[0]]);
+			if (numargs > 1)
+				on_halt = parse_long(&cmdargs[argptrs[1]]);
+			if (numargs > 2)
+				filename = &cmdargs[argptrs[2]];
+			cmd_trace(k_elements, on_halt, filename);
+		}
+
 		else if (!strcmp(cmd, "Q")) {					// dummy so it's a valid command
 		}
 

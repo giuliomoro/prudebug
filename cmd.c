@@ -17,7 +17,9 @@
 #include <sys/ioctl.h>
 #include <sys/select.h>
 #include <string.h>
+#include <errno.h>
 #include <signal.h>
+#include <stdlib.h>
 
 #include "prudbg.h"
 
@@ -556,6 +558,66 @@ void cmd_single_step(unsigned int N)
 	ctrl_reg &= ~PRU_REG_PROC_EN;
 	ctrl_reg &= ~PRU_REG_SINGLE_STEP;
 	pru[pru_ctrl_base[pru_num] + PRU_CTRL_REG] = ctrl_reg;
+}
+
+void cmd_trace(unsigned int k_elements, unsigned int on_halt, const char* filename)
+{
+	size_t len = k_elements * 1000;
+	uint16_t* trace = (uint16_t*)calloc(sizeof(uint16_t), len);
+	if(!trace) {
+		fprintf(stderr, "trace: couldn't allocate memory\n");
+		return;
+	}
+	unsigned int count = 0;
+	printf("Running trace for %zu k elements ... press ctrl-C to stop%s\n", k_elements, on_halt ? " or it will stop on halt" : "");
+	loop_should_stop = 0;
+	signal(SIGINT, loop_signal_handler);
+	count = 1;
+	trace[0] = get_program_counter();
+	cmd_run();
+	while (count < len && !loop_should_stop) {
+		int addr = get_program_counter();
+		if (addr != trace[count - 1])
+			trace[count++] = addr;
+		if (on_halt) {
+			if(INST_HALT == get_instruction(addr))
+				break;
+		}
+	}
+	if (filename) {
+		FILE* stream = fopen(filename, "w");
+		char str[10];
+		if (!stream) {
+			fprintf(stderr, "Error %d %s while creating %s\n", errno, strerror(errno), filename);
+			goto cleanup;
+		}
+		for (size_t n = 0; n < count; ++n)
+		{
+			snprintf(str, sizeof(str), "0x%04x\n", trace[n]);
+			size_t ret = fwrite(str, strlen(str), 1, stream);
+			if(ret != 1) {
+				fprintf(stderr, "Error while writing to file %s. It may be truncated\n", filename);
+				break;
+			}
+		}
+		int ret = fclose(stream);
+		if (ret) {
+			fprintf(stderr, "Error %d %s while closing file %s\n", errno, strerror(errno), filename);
+			goto cleanup;
+		}
+		printf("Trace written to %s\n", filename);
+	} else {
+		printf("Trace [%d]:\n", count);
+		for(size_t n = 0; n < count; ++n)
+		{
+			printf("0x%04x ", trace[n]);
+			if((count % 16) == 15)
+				printf("\n");
+		}
+		printf("\n");
+	}
+cleanup:
+	free(trace);
 }
 
 void cmd_soft_reset()
