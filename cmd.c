@@ -23,6 +23,8 @@
 
 #include "prudbg.h"
 
+static char* reg_names[NUM_REGS];
+
 unsigned int get_status(){
 	return pru[pru_ctrl_base[pru_num] + PRU_STATUS_REG];
 }
@@ -215,6 +217,35 @@ int cmd_loadprog(unsigned int addr, char *fn)
 	return 0;
 }
 
+static void free_reg_names() {
+	for (size_t n = 0; n < NUM_REGS; ++n)
+		free(reg_names[n]);
+}
+
+void cmd_load_reg_names(const char* filename)
+{
+	FILE* stream = fopen(filename, "r");
+	if (!stream) {
+		fprintf(stderr, "Error while reading register names from %s\n", filename);
+		return;
+	}
+	free_reg_names();
+	int ret;
+	do {
+		int reg = -1;
+		char name[50] = "";
+		ret = fscanf(stream, "%*[rR]%d %49s\n", &reg, name);
+		printf("Ret: %d, reg: %d, name: %s\n", ret, reg, name);
+		if(2 == ret && ret < NUM_REGS) {
+			free(reg_names[reg]); // in case we are overwriting one that we just created
+			reg_names[reg] = strdup(name);
+		}
+	} while(ret && EOF != ret && !ferror(stream));
+	if(EOF == ret || ferror(stream))
+		fprintf(stderr, "Error while reading register names from %s\n", filename);
+	fclose(stream);
+}
+
 // print current PRU registers
 void cmd_printregs()
 {
@@ -268,12 +299,28 @@ void cmd_printregs()
 	if (ctrl_reg&PRU_REG_RUNSTATE) {
 		printf("    Rxx registers not available since PRU is RUNNING.\n");
 	} else {
-		for (i=0; i<8; i++)
-      printf("    R%02u: 0x%08x    R%02u: 0x%08x    R%02u: 0x%08x    R%02u: 0x%08x\n",
-             i,    pru[pru_ctrl_base[pru_num] + PRU_INTGPR_REG + i],
-             i+8,  pru[pru_ctrl_base[pru_num] + PRU_INTGPR_REG + i + 8],
-             i+16, pru[pru_ctrl_base[pru_num] + PRU_INTGPR_REG + i + 16],
-             i+24, pru[pru_ctrl_base[pru_num] + PRU_INTGPR_REG + i + 24]);
+#define NUM_COLS 4
+		unsigned int names_len[NUM_COLS] = {};
+		unsigned int num_rows = NUM_REGS / NUM_COLS;
+		for(unsigned int reg = 0; reg < NUM_REGS; ++reg)
+		{
+			if(reg_names[reg]) {
+				unsigned int c = reg / num_rows;
+				int strl = strlen(reg_names[reg]) ;
+				names_len[c] = strl > names_len[c] ? strl : names_len[c];
+			}
+		}
+		for (i = 0; i < num_rows; i++) {
+			for (unsigned int c = 0; c < NUM_COLS; ++c) {
+				unsigned int reg = i + c * num_rows;
+				printf("R%02u", reg);
+				char const* name = reg_names[reg];
+				if(names_len[c])
+					printf(" %*s", names_len[c], name ? name : "");
+				printf(": 0x%08x   ", pru[pru_ctrl_base[pru_num] + PRU_INTGPR_REG + reg]);
+			}
+			printf("\n");
+		}
 	}
 
 	printf("\n");
@@ -690,4 +737,6 @@ void cmd_set_watch (unsigned int wanum, unsigned int addr,
 	       min(len, MAX_WATCH_LEN));
 }
 
-
+void cmd_free() {
+	free_reg_names();
+}

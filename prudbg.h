@@ -35,6 +35,7 @@
 #define MAX_WATCH		10
 #define MAX_WATCH_LEN		32
 #define MAX_PROC_NAME		20
+#define NUM_REGS		32
 
 // register offsets [4-byte word address offsets]
 #define PRU_CTRL_REG		0x0000
@@ -133,6 +134,7 @@ void cmd_set_watch_any (unsigned int wanum, unsigned int addr, unsigned int len)
 void cmd_set_watch (unsigned int wanum, unsigned int addr,
 		    unsigned int len, unsigned char * value);
 
+void cmd_load_reg_names(const char* filename);
 void cmd_printregs();
 void cmd_printreg(unsigned int i);
 void cmd_setreg(int i, unsigned int value);
@@ -141,6 +143,7 @@ void cmd_print_ctrlreg_uint(const char * name, unsigned int i);
 void cmd_set_ctrlreg(unsigned int i, unsigned int value);
 void cmd_set_ctrlreg_bits(unsigned int i, unsigned int bits);
 void cmd_clr_ctrlreg_bits(unsigned int i, unsigned int bits);
+void cmd_free();
 
 void printhelp();
 void printhelpbrief();

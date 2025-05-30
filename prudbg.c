@@ -275,7 +275,7 @@ int main(int argc, char *argv[])
 	pru_access_mode = ACCESS_GUESS;
 	pi = DEFAULT_PROCESSOR_INDEX;
 	unsigned int requested_pru = 0;
-	while ((opt = getopt(argc, argv, "?a:p:umn:")) != -1) {
+	while ((opt = getopt(argc, argv, "?a:p:umn:r:")) != -1) {
 		switch (opt) {
 			case 'a':
 				opt_pruss_addr = parse_long(optarg);
@@ -293,6 +293,10 @@ int main(int argc, char *argv[])
 				requested_pru = parse_long(optarg);
 				break;
 
+			case 'r':
+				cmd_load_reg_names(optarg);
+				break;
+
 			case 'p':
 				pitemp = -1;
 				for(i=0; pdb[i].num_of_pruss != 0; i++) if (strcmpci(optarg, pdb[i].short_name, MAX_PROC_NAME)) pitemp = i;
@@ -306,13 +310,14 @@ int main(int argc, char *argv[])
 				
 			case '?':
 			default: /* '?' */
-				printf("Usage: prudebug [-a pruss-address] [-u] [-m] [-p processor]\n");
+				printf("Usage: prudebug [-a pruss-address] [-u] [-m] [-p processor] [-n pru_num] [-r filename]\n");
 				printf("    -a - pruss-address is the memory address of the PRU in ARM memory space\n");
 				printf("    -u - force the use of UIO to map PRU memory space\n");
 				printf("    -m - force the use of /dev/mem to map PRU memory space\n");
 				printf("    if neither the -u or -m options are used then it will try the UIO first\n");
 				
 				printf("    -n - select PRU number to use\n");
+				printf("    -r filename - load filename containing register numbers<->names mapping in the form \"<number> <name>\"\n");
 				printf("    -p - select SoC to use (sets the PRU memory locations)\n");
 				for(i=0; pdb[i].num_of_pruss != 0; i++) {
 					printf("        %s - %s\n", pdb[i].short_name, pdb[i].processor);
@@ -801,6 +806,7 @@ int main(int argc, char *argv[])
 
 	printf("\nGoodbye.\n\n");
 	regfree(&reg_regex);
+	cmd_free();
 
 	return 0;
 }
