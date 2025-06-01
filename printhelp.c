@@ -109,6 +109,13 @@ void printhelp()
 	printf("     R2 // prints R2 \n");
 	printf("     R2 0x01234 // set R2 to 0x1234 \n\n");
 
+	printf("C\n");
+	printf("    Display current PRU constant table.\n\n");
+
+	printf("Cx [value]\n");
+	printf("     Display value from the constant table, e.g.:\n");
+	printf("     C2 // prints C2 \n");
+
 	printf("RESET\n");
 	printf("    Reset the current PRU\n\n");
 

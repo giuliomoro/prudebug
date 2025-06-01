@@ -247,7 +247,7 @@ void cmd_load_reg_names(const char* filename)
 }
 
 // print current PRU registers
-void cmd_printregs()
+void cmd_printrcs(enum RegOrConst type)
 {
 	unsigned int		ctrl_reg, reset_pc;
 	char			*run_state, *single_step, *cycle_cnt_en, *pru_sleep, *proc_en;
@@ -281,7 +281,7 @@ void cmd_printregs()
 	else
 		proc_en = "PROC_DISABLED";
 
-	printf("Register info for PRU%u\n", pru_num);
+	printf("%s info for PRU%u\n", kReg == type ? "Register" : "Constant", pru_num);
 	printf("    Control register: 0x%08x\n", ctrl_reg);
 	printf("      Reset PC:0x%04x  %s, %s, %s, %s, %s\n\n", reset_pc, run_state, single_step, cycle_cnt_en, pru_sleep, proc_en);
 
@@ -297,7 +297,7 @@ void cmd_printregs()
 	printf("      Cycle counter: %u, stall counter: %u\n\n", pru[pru_ctrl_base[pru_num] + PRU_CYCLE_REG], pru[pru_ctrl_base[pru_num] + PRU_STALL_REG]);
 
 	if (ctrl_reg&PRU_REG_RUNSTATE) {
-		printf("    Rxx registers not available since PRU is RUNNING.\n");
+		printf("    %s not available since PRU is RUNNING.\n", kReg == type ? "Rxx registers" : "Cxx constants");
 	} else {
 #define NUM_COLS 4
 		unsigned int names_len[NUM_COLS] = {};
@@ -310,14 +310,16 @@ void cmd_printregs()
 				names_len[c] = strl > names_len[c] ? strl : names_len[c];
 			}
 		}
+		unsigned int offset = kReg == type ? PRU_INTGPR_REG : PRU_INTCT_REG;
 		for (i = 0; i < num_rows; i++) {
 			for (unsigned int c = 0; c < NUM_COLS; ++c) {
 				unsigned int reg = i + c * num_rows;
-				printf("R%02u", reg);
+				printf("%c%02u", kReg == type ? 'R' : 'C', reg);
 				char const* name = reg_names[reg];
 				if(names_len[c])
 					printf(" %*s", names_len[c], name ? name : "");
-				printf(": 0x%08x   ", pru[pru_ctrl_base[pru_num] + PRU_INTGPR_REG + reg]);
+
+				printf(": 0x%08x   ", pru[pru_ctrl_base[pru_num] + offset + reg]);
 			}
 			printf("\n");
 		}
@@ -327,17 +329,19 @@ void cmd_printregs()
 }
 
 // print current single specific PRU registers
-void cmd_printreg(unsigned int i)
+void cmd_printrc(unsigned int i, enum RegOrConst type)
 {
-	unsigned int		ctrl_reg;
+	unsigned int ctrl_reg;
 
 	ctrl_reg = pru[pru_ctrl_base[pru_num] + PRU_CTRL_REG];
 
 	if (ctrl_reg&PRU_REG_RUNSTATE) {
 		printf("Rxx registers not available since PRU is RUNNING.\n");
 	} else {
-		printf("R%02u: 0x%08x\n\n",
-		       i, pru[pru_ctrl_base[pru_num] + PRU_INTGPR_REG + i]);
+		unsigned int offset = kReg == type ? PRU_INTGPR_REG : PRU_INTCT_REG;
+		printf("%c%02u: 0x%08x\n\n",
+		       kReg == type ? 'R' : 'C',
+		       i, pru[pru_ctrl_base[pru_num] + offset + i]);
 	}
 }
 
@@ -576,7 +580,7 @@ void cmd_runss(long count)
 	printf("\n");
 
 	// print the registers
-	cmd_printregs();
+	cmd_printrcs(kReg);
 
 	// disable single step mode and disable processor
 	ctrl_reg = pru[pru_ctrl_base[pru_num] + PRU_CTRL_REG];
@@ -598,7 +602,7 @@ void cmd_single_step(unsigned int N)
 	}
 
 	// print the registers
-	cmd_printregs();
+	cmd_printrcs(kReg);
 
 	// disable single step mode and disable processor
 	ctrl_reg = pru[pru_ctrl_base[pru_num] + PRU_CTRL_REG];

@@ -42,7 +42,8 @@
 #define PRU_STATUS_REG		0x0001
 #define PRU_CYCLE_REG		0x0003
 #define PRU_STALL_REG		0x0004
-#define PRU_INTGPR_REG		0x0100
+#define PRU_INTGPR_REG		0x0100 // GPREG0
+#define PRU_INTCT_REG		0x0120 // CT_REG0
 
 // PRU control register bit flags
 #define PRU_REG_PCRESET_MASK	0x0000FFFF
@@ -135,8 +136,13 @@ void cmd_set_watch (unsigned int wanum, unsigned int addr,
 		    unsigned int len, unsigned char * value);
 
 void cmd_load_reg_names(const char* filename);
-void cmd_printregs();
-void cmd_printreg(unsigned int i);
+enum RegOrConst {
+	kReg = 0,
+	kConst = 1,
+};
+void cmd_printrcs(enum RegOrConst type);
+void cmd_printrc(unsigned int i, enum RegOrConst type);
+void cmd_printconst(unsigned int i);
 void cmd_setreg(int i, unsigned int value);
 void cmd_print_ctrlreg_uint(const char * name, unsigned int i);
 void cmd_print_ctrlreg_uint(const char * name, unsigned int i);

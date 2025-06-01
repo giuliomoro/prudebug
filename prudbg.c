@@ -262,7 +262,9 @@ int main(int argc, char *argv[])
 	int			pru_access_mode, pi, pitemp;
 	char			uio_dev_file[50];
 	regex_t reg_regex;
+	regex_t rc_regex;
 	regcomp(&reg_regex, "[:space:]*r[0-9]\\+\\>", REG_ICASE);
+	regcomp(&rc_regex, "[:space:]*[rc][0-9]\\+\\>", REG_ICASE);
 
 	// say hello
 	printf ("PRU Debugger v" VERSION "\n");
@@ -625,26 +627,29 @@ int main(int argc, char *argv[])
 			}
 		}
 
-		else if (!strcmp(cmd, "R")) {					// R - Print PRU registers
+		else if (!strcmp(cmd, "R") || !strcmp(cmd, "C")) {		// R or C - Print PRU registers or constants
 			last_cmd = LAST_CMD_NONE;
 			if (numargs != 0) {
 				printf("ERROR: incorrect number of arguments\n");
 			} else {
-				cmd_printregs();
+				cmd_printrcs('R' == cmd[0] ? kReg : kConst);
 			}
 		}
 
-		else if (!regexec(&reg_regex, cmd, 0, NULL, 0)) {		// R[0..31] - Read/Write single PRU registers
+		else if (!regexec(&rc_regex, cmd, 0, NULL, 0)) {		// [RC][0..31] - Read/Write single PRU registers/const
 			last_cmd = LAST_CMD_NONE;
 			i = 0;
 			/* skip leading white space */
 			while (strlen(cmd+i) != 0 && isspace(cmd[i]))
 				++i;
 
+			enum RegOrConst type = kReg;
+			if('c' == cmd[i] || 'C' == cmd[i])
+				type = kConst;
 			i = parse_long(cmd+i + 1);
 			if (numargs == 0) {
-				cmd_printreg(i);
-			} else if (numargs == 1) {
+				cmd_printrc(i, type);
+			} else if (numargs == 1 && kReg == type) {
 				unsigned int value = parse_long(&cmdargs[argptrs[0]]);
 				cmd_setreg(i, value);
 			} else {
@@ -765,7 +770,7 @@ int main(int argc, char *argv[])
 
 		else if (!strcmp(cmd, "TRACE")) {
 			last_cmd = LAST_CMD_NONE;
-			unsigned int k_elements = 100;
+			unsigned int k_elements = 1;
 			unsigned int on_halt = 1;
 			char const* filename = NULL;
 			if (numargs > 0)
@@ -806,6 +811,7 @@ int main(int argc, char *argv[])
 
 	printf("\nGoodbye.\n\n");
 	regfree(&reg_regex);
+	regfree(&rc_regex);
 	cmd_free();
 
 	return 0;
