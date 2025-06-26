@@ -53,7 +53,7 @@ void disassemble(char *str, unsigned int len, unsigned int inst)
 					"SET"};
 	char			*f2_inst[] = {
 					"JMP", "JAL", "LDI", "LMBD", "SCAN",
-					"HALT", "RESERVED", "RESERVED", "LOOP",
+					"HALT", "MVI", "RESERVED", "LOOP",
 					"RESERVED", "RESERVED", "RESERVED",
 					"RESERVED", "RESERVED", "RESERVED",
 					"SLP"};
@@ -152,7 +152,66 @@ void disassemble(char *str, unsigned int len, unsigned int inst)
 				case 5:  // HALT
 					snprintf(str, len,"%s", f2_inst[SUBOP]);
 					break;
-
+				case 6: // MVIB/MVIW/MIVIX
+				{
+					// only recognise a subset, those in CODE_MVI_PLUS in pasmop.c
+					// with args R1.bX
+					unsigned int err = 0;
+					unsigned int widthBits = (inst & 0x00030000) >> 16;
+					unsigned int itype = (inst & 0x01E00000) >> 21;//increment type
+					unsigned char hasPostInc[2];
+					unsigned char hasPreDec[2];
+					for(unsigned int n = 0; n < 2; ++n)
+					{
+						unsigned char bits = 0x3 & (itype >> ((1 - n) * 2));
+						hasPostInc[n] = bits == 2;
+						hasPreDec[n] = bits == 3;
+						// TODO: I think bits == 0 is a
+						// valid instruction, but with
+						// different args or something
+						// like that? Unsupported for now
+						if (0 == bits)
+							err = 1;
+					}
+					if(inst & (1 << 20))
+					{
+						// some three argument version? Unsupported for now
+						err = 2;
+					}
+					Rs1Sel = (inst & 0x0000E000) >> 13;
+					Rs1 = (inst & 0x00001F00) >> 8;
+					RdSel = (inst & 0x000000E0) >> 5;
+					Rd = (inst & 0x0000001F);
+					char const* widthStr;
+					switch(widthBits) {
+						case 0: // 1 byte
+							widthStr = "B";
+							break;
+						case 1: // 2 bytes
+							widthStr = "W";
+							break;
+						case 2: // 4 bytes
+							widthStr = "D";
+							break;
+						default:
+							err = 3;
+					}
+					if(err) {
+						snprintf(str, len,"UNKNOWN MVIx: %#x err: %d\n", inst, err);
+					} else {
+						snprintf(str, len,"%s%s *%sR%u%s%s, *%sR%u%s%s\n",
+							f2_inst[SUBOP], widthStr,
+							hasPreDec[0] ? "--" : "",
+							Rd, sis[RdSel],
+							hasPostInc[0] ? "++" : "",
+							hasPreDec[1] ? "--" : "",
+							Rs1,
+							sis[Rs1Sel],
+							hasPostInc[1] ? "++" : ""
+						);
+					}
+				}
+					break;
 				case 7: // XI/XOUT/XCHG
 					/*
 					// This needs better handling
