@@ -620,7 +620,7 @@ void cmd_trace(unsigned int k_elements, unsigned int on_halt, const char* filena
 		return;
 	}
 	unsigned int count = 0;
-	printf("Running trace for %zu k elements ... press ctrl-C to stop%s\n", k_elements, on_halt ? " or it will stop on halt" : "");
+	printf("Running trace for %u k elements ... press ctrl-C to stop%s\n", k_elements, on_halt ? " or it will stop on halt" : "");
 	loop_should_stop = 0;
 	signal(SIGINT, loop_signal_handler);
 	count = 1;
