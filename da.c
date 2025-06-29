@@ -213,42 +213,66 @@ void disassemble(char *str, unsigned int len, unsigned int inst)
 				}
 					break;
 				case 7: // XI/XOUT/XCHG
-					/*
-					// This needs better handling
-					// form, as reported from pasmop.c
-					// OPCODE IM(511), Rdst, OP(124), n    -or-
-					// OPCODE IM(511), Rdst, bn
+				{
+					// OPCODE IM(253), Rdst, OP(124), n    -or-
+					// OPCODE IM(253), Rdst, bn
 					char* op = NULL;
 					switch((inst >> 23) & 0x5F) {
-						case 0x5D: // XIN
+						case 0x5D:
 							op = "XIN";
-							break
-						case 0x5E: // XOUT
+							break;
+						case 0x5E:
 							op = "XOUT";
-							break
-						case 0x5F: // XCHG
-							op = "XCHG"
-							break
-						default:
-					}
-					*/
-					// sorry, lazy. Just handling a handful hardcoded cases
-					switch(inst) {
-						case 0x2e852380: // 0x852380
-							snprintf(str, len,"XIN 10, &r0.b0, 72");
 							break;
-						case 0x2e860980: // 0x860980
-							snprintf(str, len,"XIN 12, &r0.b0, 20");
-							break;
-						case 0x2f052380: // 0x1052380
-							snprintf(str, len,"XOUT 10, &r0.b0, 72");
-							break;
-						case 0x2f060980: // 0x1060980
-							snprintf(str, len,"XOUT 12, &r0.b0, 20");
+						case 0x5F:
+							op = "XCHG";
 							break;
 						default:
 							snprintf(str, len,"UNKNOWN-XI/XOUT: %#x\n", inst);
+							return;
 					}
+					// first argument is always an immediate
+					unsigned int imm0 = inst >> 15 & 0xff;
+					// Second argument is a REG, but pasmop.c shows
+					// it can be an immediate, too? If I understand the code
+					// right, and with a bit of a guesstimate, the opcode
+					// only allows for REG, but `pasm` tries to be clever
+					// and encode a number as a 5 bit register plus a FIELDTYPE.
+					// So, ultimately, when disassembling we only care about
+					// the register format
+					unsigned int arg1Val = inst & 0x7F;
+					// wX bitfields decay to bX
+					// because the allowed address
+					// range fits in it
+					char* bitFieldStr = "";
+					switch(0x3 & (inst >> 5)) {
+						case 0:
+							bitFieldStr = ".b0"; // could be left as ""
+							break;
+						case 1:
+							bitFieldStr = ".b1";
+							break;
+						case 2:
+							bitFieldStr = ".b2";
+							break;
+						case 3:
+							bitFieldStr = ".b3";
+							break;
+					}
+					unsigned int reg = arg1Val & 0x1F;
+					// third argument is an immediate if < 124,
+					// or a R0's bx byte otherwise
+					unsigned int arg2Val = (inst >> 7) & 0x7F;
+					char arg2Str[4];
+					if(arg2Val < 124) {
+						snprintf(arg2Str, sizeof(arg2Str),
+								"%d", arg2Val + 1); // encoded as imm -1
+					} else {
+						snprintf(arg2Str, sizeof(arg2Str),
+								"b%d", arg2Val - 124);
+					}
+					snprintf(str, len,"%s %d, &R%d%s, %s", op, imm0, reg, bitFieldStr, arg2Str);
+				}
 					break;
 				case 8: { // [I]LOOP
 					const char * I = (inst & (1<<15)) ? "I" : "";
